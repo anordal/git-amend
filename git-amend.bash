@@ -38,6 +38,9 @@ fi
 show(){
 	git diff --relative HEAD .
 
+	local up
+	up=$(git rev-parse --show-cdup)
+
 	local n
 	if test "$base" != ""; then
 		n=$(git rev-list --count "$base..$branch")
@@ -51,7 +54,11 @@ show(){
 		local h=${r%% *}
 		local r=${r#* }
 		printf '\e[1;33m%2s \e[34m%s %s\n' "$l" "$h" "$r"
-		git diff-tree --no-commit-id --name-only -r --root "$h" | sed 's/^/           /'
+		git diff-tree --no-commit-id --name-only -r --root "$h" | while read -r f
+		do
+			printf '   '
+			realpath --relative-to=. -- "$up$f"
+		done
 		((l++)) || true
 	done < <(git log --pretty=format:$'%h \e[1;33m%s\e[30m%d\e[m' -n"$n" "$branch" && echo)
 }
