@@ -26,13 +26,13 @@ if test $# -ge 2 && test "$1" = --base; then
 	base=$2
 	shift 2
 else
-	base=("$GIT_DIR"/refs/remotes/origin/ma*)
-	if test ${#base[@]} -eq 1; then
-		base=${base##*/}
-		base=$(git merge-base origin/"$base" "$branch")
-	else
-		base=
-	fi
+	base=
+	for guess in "$GIT_DIR"/refs/{remotes,heads}/*/{HEAD,main,master}; do
+		read -r base < "$guess"
+		base=${base#ref: }
+		base=$(git merge-base "$base" "$branch")
+		break
+	done
 fi
 
 show(){
