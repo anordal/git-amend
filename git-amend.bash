@@ -57,7 +57,7 @@ show(){
 		git diff-tree --no-commit-id --name-only -r --root "$h" | while read -r f
 		do
 			printf '   '
-			realpath --relative-to=. -- "$up$f"
+			realpath -smL --relative-to=. -- "$up$f"
 		done
 		((l++)) || true
 	done < <(git log --pretty=format:$'%h \e[1;33m%s\e[30m%d\e[m' -n"$n" "$branch" && echo)
