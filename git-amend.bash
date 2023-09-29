@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
-shopt -s nullglob
 
 require(){
 	hash "$@" || exit 127
@@ -10,11 +9,10 @@ require git
 require git-revise
 
 {
-	read -r GIT_DIR
-	read -r GIT_WORK_TREE
-} < <(git rev-parse --git-dir --show-cdup)
-export GIT_DIR
-export GIT_WORK_TREE="${GIT_WORK_TREE:-.}"
+	read -r GIT_COMMON_DIR
+	read -r up
+} < <(git rev-parse --git-common-dir --show-cdup)
+export GIT_COMMON_DIR
 
 branch=HEAD
 if test $# -ge 2 && test "$1" = --branch; then
@@ -27,19 +25,17 @@ if test $# -ge 2 && test "$1" = --base; then
 	shift 2
 else
 	base=
-	for guess in "$GIT_DIR"/refs/{remotes,heads}/*/{HEAD,main,master}; do
-		read -r base < "$guess"
-		base=${base#ref: }
-		base=$(git merge-base "$base" "$branch")
-		break
+	for guess in "$GIT_COMMON_DIR"/refs/{remotes/origin/{HEAD,main,master},heads/{main,master}}; do
+		if { read -r base < "$guess"; } 2>/dev/null; then
+			base=${base#ref: }
+			base=$(git merge-base "$base" "$branch")
+			break
+		fi
 	done
 fi
 
 show(){
 	git diff --relative HEAD .
-
-	local up
-	up=$(git rev-parse --show-cdup)
 
 	local n
 	if test "$base" != ""; then
