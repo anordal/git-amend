@@ -12,7 +12,6 @@ require git-revise
 	read -r GIT_COMMON_DIR
 	read -r up
 } < <(git rev-parse --git-common-dir --show-cdup)
-export GIT_COMMON_DIR
 
 branch=HEAD
 if test $# -ge 2 && test "$1" = --branch; then
